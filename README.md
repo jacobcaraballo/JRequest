@@ -6,7 +6,7 @@ JRequest is a very simple http request library.
 
 Usage:
 
-```
+```swift
 JRequest<MyCodableResponseClass>().get(
 	endpoint,
 	queries: ["param1": param1value, "param2": param2value],
