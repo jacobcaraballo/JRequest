@@ -9,7 +9,7 @@
 import Foundation
 import CryptoSwift
 
-class JRequestAuth {
+public final class JRequestAuth {
 	
 	let key: String
 	let secret: String
@@ -23,7 +23,7 @@ class JRequestAuth {
 	
 }
 
-class JRequest<T: Codable> {
+public final class JRequest<T: Codable> {
 	
 	enum JRequestError: Error {
 		case invalidURL
