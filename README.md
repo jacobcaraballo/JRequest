@@ -4,7 +4,24 @@ JRequest is a very simple http request library.
 
 ---
 
-Usage:
+Basic Usage:
+```swift
+JRequest<MyCodableResponseClass>().get(endpoint) { (response, error) in
+	if let error = error { return handleError(error) }
+	doSomething(with: response)
+}
+```
+```swift
+JRequest<MyCodableResponseClass>().post(endpoint, body: body) 
+{ (response, error) in
+	if let error = error { return handleError(error) }
+	doSomething(with: response)
+}
+```
+
+---
+
+Extended Usage:
 
 ```swift
 JRequest<MyCodableResponseClass>().get(

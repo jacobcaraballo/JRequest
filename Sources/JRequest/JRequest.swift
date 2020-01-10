@@ -38,51 +38,60 @@ class JRequest<T: Codable> {
 	init() { }
 	
 	
+	
+	// MARK: GET Requests
 	func get(
 		_ endpoint: String,
-		queries: [String: String],
-		headers: [String: String],
-		auth: JRequestAuth?,
+		queries: [String: String]? = nil,
+		headers: [String: String]? = nil,
+		auth: JRequestAuth? = nil,
 		callback: @escaping ((T?, JRequestError?) -> ())
 	) {
-		start(endpoint, method: .get, queries: queries, headers: headers, auth: auth, callback: callback)
+		start(endpoint, method: .get, body: nil, queries: queries, headers: headers, auth: auth, callback: callback)
 	}
 	
 	
+	
+	// MARK: POST Requests
 	func post(
 		_ endpoint: String,
-		queries: [String: String],
-		headers: [String: String],
-		auth: JRequestAuth?,
+		body: Data? = nil,
+		queries: [String: String]? = nil,
+		headers: [String: String]? = nil,
+		auth: JRequestAuth? = nil,
 		callback: @escaping ((T?, JRequestError?) -> ())
 	) {
-		start(endpoint, method: .post, queries: queries, headers: headers, auth: auth, callback: callback)
+		start(endpoint, method: .post, body: body, queries: queries, headers: headers, auth: auth, callback: callback)
 	}
+	
 	
 	
 	private func start(
 		_ endpoint: String,
 		method: JRequestMethod,
-		queries: [String: String],
-		headers: [String: String],
+		body: Data?,
+		queries: [String: String]?,
+		headers: [String: String]?,
 		auth: JRequestAuth?,
 		callback: @escaping ((T?, JRequestError?) -> ())
 	) {
 		
 		// set query items
 		guard var comps = URLComponents(string: endpoint) else { return callback(nil, .invalidURL) }
-		comps.queryItems = queries.map({ URLQueryItem(name: $0, value: $1) })
+		comps.queryItems = queries?.map({ URLQueryItem(name: $0, value: $1) })
 		
 		
 		// create request with components
 		guard let url = comps.url else { return callback(nil, .invalidURL)}
 		var request = URLRequest(url: url)
 		request.httpMethod = method.rawValue.uppercased()
-		
+		request.httpBody = body
 		
 		// set headers
-		for (key, value) in headers {
-			request.setValue(value, forHTTPHeaderField: key)
+		if let headers = headers {
+			for (key, value) in headers {
+				request.setValue(value, forHTTPHeaderField: key)
+			}
 		}
 		
 		
