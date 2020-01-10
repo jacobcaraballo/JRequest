@@ -99,7 +99,7 @@ public final class JRequest<T: Codable> {
 		
 		
 		// set default content-type
-		if request.value(forHTTPHeaderField: "Content-Type") == null {
+		if request.value(forHTTPHeaderField: "Content-Type") == nil {
 			request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 		}
 		
