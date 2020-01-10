@@ -182,7 +182,7 @@ private class JRequestSigner: NSObject {
 			canonicalRequestHash
 			].joined(separator: "\n")
 		
-		guard let signature = hmacStringToSign(stringToSign: stringToSign, secretSigningKey: secret, shortDateString: date.short)
+		guard let signature = hmacStringToSign(stringToSign: stringToSign, secretSigningKey: secret, shortDateString: date.short, awsRegion: awsRegion)
 			else { return .none }
 		
 		let authorization = hmacShaTypeString + " Credential=" + key + "/" + credential + ", SignedHeaders=" + signedHeaders + ", Signature=" + signature
