@@ -115,13 +115,16 @@ public final class JRequest<T: Codable> {
 		let decoder = JSONDecoder()
 		let task = URLSession.shared.dataTask(with: signedRequest) { data, res, error in
 			
-			guard error == nil else { return callback(nil, .networkError) }
+			guard error == nil
+				else { return callback(nil, .networkError) }
 			
 			guard let data = data
 				else { return callback(nil, .invalidResponse) }
 			
-			guard let response =
-				try? decoder.decode(T.self, from: data)
+			guard !(T is String)
+				else { return callback(String(data: data), nil) }
+			
+			guard let response = try? decoder.decode(T.self, from: data)
 				else { return callback(nil, .invalidResponse) }
 			
 			
