@@ -86,8 +86,8 @@ public final class JRequest<T: Codable> {
 		var request = URLRequest(url: url)
 		request.httpMethod = method.rawValue.uppercased()
 		
-		if let body = try? JSONSerialization.data(withJSONObject: body) {
-			request.httpBody = body
+		if let body = body, let data = try? JSONSerialization.data(withJSONObject: body) {
+			request.httpBody = data
 		}
 		
 		// set headers
