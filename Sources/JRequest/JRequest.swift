@@ -11,11 +11,11 @@ import CryptoSwift
 
 public final class JRequestAuth {
 	
-	let key: String
-	let secret: String
-	let region: String
+	public let key: String
+	public let secret: String
+	public let region: String
 	
-	init(key: String, secret: String, region: String = "us-east-1") {
+	public init(key: String, secret: String, region: String = "us-east-1") {
 		self.key = key
 		self.secret = secret
 		self.region = region
@@ -25,22 +25,22 @@ public final class JRequestAuth {
 
 public final class JRequest<T: Codable> {
 	
-	enum JRequestError: Error {
+	public enum JRequestError: Error {
 		case invalidURL
 		case networkError
 		case invalidResponse
 	}
 	
-	enum JRequestMethod: String {
+	public enum JRequestMethod: String {
 		case get, post
 	}
 	
-	init() { }
+	public init() { }
 	
 	
 	
 	// MARK: GET Requests
-	func get(
+	public func get(
 		_ endpoint: String,
 		queries: [String: String]? = nil,
 		headers: [String: String]? = nil,
@@ -53,7 +53,7 @@ public final class JRequest<T: Codable> {
 	
 	
 	// MARK: POST Requests
-	func post(
+	public func post(
 		_ endpoint: String,
 		body: Data? = nil,
 		queries: [String: String]? = nil,
