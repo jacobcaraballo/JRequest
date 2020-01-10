@@ -12,7 +12,7 @@ JRequest<MyCodableResponseClass>().get(endpoint) { (response, error) in
 }
 ```
 ```swift
-JRequest<MyCodableResponseClass>().post(endpoint, body: body) 
+JRequest<MyCodableResponseClass>().post(endpoint, body: jsonBody) 
 { (response, error) in
 	if let error = error { return handleError(error) }
 	doSomething(with: response)

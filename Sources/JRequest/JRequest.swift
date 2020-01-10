@@ -55,7 +55,7 @@ public final class JRequest<T: Codable> {
 	// MARK: POST Requests
 	public func post(
 		_ endpoint: String,
-		body: Data? = nil,
+		body: [String: Any]? = nil,
 		queries: [String: String]? = nil,
 		headers: [String: String]? = nil,
 		auth: JRequestAuth? = nil,
@@ -69,7 +69,7 @@ public final class JRequest<T: Codable> {
 	private func start(
 		_ endpoint: String,
 		method: JRequestMethod,
-		body: Data?,
+		body: [String: Any]?,
 		queries: [String: String]?,
 		headers: [String: String]?,
 		auth: JRequestAuth?,
@@ -85,7 +85,10 @@ public final class JRequest<T: Codable> {
 		guard let url = comps.url else { return callback(nil, .invalidURL)}
 		var request = URLRequest(url: url)
 		request.httpMethod = method.rawValue.uppercased()
-		request.httpBody = body
+		
+		if let body = try? JSONSerialization.data(withJSONObject: body) {
+			request.httpBody = body
+		}
 		
 		// set headers
 		if let headers = headers {
