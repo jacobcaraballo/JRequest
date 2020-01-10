@@ -121,8 +121,8 @@ public final class JRequest<T: Codable> {
 			guard let data = data
 				else { return callback(nil, .invalidResponse) }
 			
-			guard !(T is String)
-				else { return callback(String(data: data), nil) }
+			guard !(T.self == String.self)
+				else { return callback(String(data: data, encoding: .utf8) as? T, nil) }
 			
 			guard let response = try? decoder.decode(T.self, from: data)
 				else { return callback(nil, .invalidResponse) }
