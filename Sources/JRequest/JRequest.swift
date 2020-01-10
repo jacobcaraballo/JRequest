@@ -98,6 +98,12 @@ public final class JRequest<T: Codable> {
 		}
 		
 		
+		// set default content-type
+		if request.value(forHTTPHeaderField: "Content-Type") == null {
+			request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+		}
+		
+		
 		// sign the request if necessary
 		var signedRequest = request
 		if let auth = auth, let signed = JRequestSigner.sign(request: request, secret: auth.secret, key: auth.key, awsRegion: auth.region) {
