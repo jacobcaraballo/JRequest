@@ -23,13 +23,13 @@ public final class JRequestAuth {
 	
 }
 
+public final enum JRequestError: Error {
+	case invalidURL
+	case networkError
+	case invalidResponse
+}
+
 public final class JRequest<T: Codable> {
-	
-	public enum JRequestError: Error {
-		case invalidURL
-		case networkError
-		case invalidResponse
-	}
 	
 	public enum JRequestMethod: String {
 		case get, post
