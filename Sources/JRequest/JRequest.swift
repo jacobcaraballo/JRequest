@@ -23,7 +23,7 @@ public final class JRequestAuth {
 	
 }
 
-public final enum JRequestError: Error {
+public enum JRequestError: Error {
 	case invalidURL
 	case networkError
 	case invalidResponse
