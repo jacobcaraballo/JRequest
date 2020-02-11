@@ -29,11 +29,11 @@ public enum JRequestError: Error {
 	case invalidResponse
 }
 
+public enum JRequestMethod: String {
+	case get, post
+}
+
 public final class JRequest<T: Codable> {
-	
-	public enum JRequestMethod: String {
-		case get, post
-	}
 	
 	public init() { }
 	
@@ -62,6 +62,66 @@ public final class JRequest<T: Codable> {
 		callback: @escaping ((T?, JRequestError?) -> ())
 	) {
 		start(endpoint, method: .post, body: body, queries: queries, headers: headers, auth: auth, callback: callback)
+	}
+	
+	
+	
+	/// Performs a request and discards the response. This will still inform of any errors in the request itself.
+	public class func requestIgnoringResponse(
+		_ endpoint: String,
+		method: JRequestMethod,
+		body: [String: Any]? = nil,
+		queries: [String: String]? = nil,
+		headers: [String: String]? = nil,
+		auth: JRequestAuth? = nil,
+		callback: @escaping ((JRequestError?) -> ())
+	) {
+		// set query items
+		guard var comps = URLComponents(string: endpoint) else { return callback(.invalidURL) }
+		comps.queryItems = queries?.map({ URLQueryItem(name: $0, value: $1) })
+		
+		
+		// create request with components
+		guard let url = comps.url else { return callback(.invalidURL)}
+		var request = URLRequest(url: url)
+		request.httpMethod = method.rawValue.uppercased()
+		
+		if let body = body, let data = try? JSONSerialization.data(withJSONObject: body) {
+			request.httpBody = data
+		}
+		
+		// set headers
+		if let headers = headers {
+			for (key, value) in headers {
+				request.setValue(value, forHTTPHeaderField: key)
+			}
+		}
+		
+		
+		// set default content-type
+		if request.value(forHTTPHeaderField: "Content-Type") == nil {
+			request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+		}
+		
+		
+		// sign the request if necessary
+		var signedRequest = request
+		if let auth = auth, let signed = JRequestSigner.sign(request: request, secret: auth.secret, key: auth.key, awsRegion: auth.region) {
+			signedRequest = signed
+		}
+		
+		
+		// start task with the request and fetch the json response
+		let task = URLSession.shared.dataTask(with: signedRequest) { _, _, error in
+			
+			guard error == nil
+				else { return callback(.networkError) }
+			
+			// the request was successful
+			callback(nil)
+			
+		}
+		task.resume()
 	}
 	
 	
