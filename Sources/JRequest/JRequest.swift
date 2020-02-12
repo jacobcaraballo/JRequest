@@ -29,7 +29,7 @@ public enum JRequestError: Error {
 	case invalidResponse
 }
 
-public final class JRequest<T: Codable> {
+public final class JRequest<T: Decodable> {
 	
 	public enum JRequestMethod: String {
 		case get, post
@@ -52,6 +52,20 @@ public final class JRequest<T: Codable> {
 	
 	
 	
+	// MARK: GET Requests with decodable error
+	public func get<E: Decodable>(
+		_ endpoint: String,
+		errorClass: E,
+		queries: [String: String]? = nil,
+		headers: [String: String]? = nil,
+		auth: JRequestAuth? = nil,
+		callback: @escaping ((T?, E?, JRequestError?) -> ())
+	) {
+		start(endpoint, method: .get, errorClass: errorClass, body: nil, queries: queries, headers: headers, auth: auth, callback: callback)
+	}
+	
+	
+	
 	// MARK: POST Requests
 	public func post(
 		_ endpoint: String,
@@ -66,14 +80,29 @@ public final class JRequest<T: Codable> {
 	
 	
 	
-	private func start(
+	// MARK: POST Requests with decodable error
+	public func post<E: Decodable>(
+		_ endpoint: String,
+		errorClass: E,
+		body: [String: Any]? = nil,
+		queries: [String: String]? = nil,
+		headers: [String: String]? = nil,
+		auth: JRequestAuth? = nil,
+		callback: @escaping ((T?, E?, JRequestError?) -> ())
+	) {
+		start(endpoint, method: .post, errorClass: errorClass, body: body, queries: queries, headers: headers, auth: auth, callback: callback)
+	}
+	
+	
+	
+	private func request(
 		_ endpoint: String,
 		method: JRequestMethod,
 		body: [String: Any]?,
 		queries: [String: String]?,
 		headers: [String: String]?,
 		auth: JRequestAuth?,
-		callback: @escaping ((T?, JRequestError?) -> ())
+		callback: @escaping ((Data?, JRequestError?) -> ())
 	) {
 		
 		// set query items
@@ -112,8 +141,34 @@ public final class JRequest<T: Codable> {
 		
 		
 		// start task with the request and fetch the json response
-		let decoder = JSONDecoder()
 		let task = URLSession.shared.dataTask(with: signedRequest) { data, res, error in
+			
+			guard error == nil
+				else { return callback(nil, .networkError) }
+			
+			guard let data = data
+				else { return callback(nil, .invalidResponse) }
+			
+			callback(data, nil)
+		}
+		task.resume()
+		
+	}
+	
+	
+	
+	/// Starts a request with the passed parameters.
+	private func start(
+		_ endpoint: String,
+		method: JRequestMethod,
+		body: [String: Any]?,
+		queries: [String: String]?,
+		headers: [String: String]?,
+		auth: JRequestAuth?,
+		callback: @escaping ((T?, JRequestError?) -> ())
+	) {
+		
+		request(endpoint, method: method, body: body, queries: queries, headers: headers, auth: auth) { data, error in
 			
 			guard error == nil
 				else { return callback(nil, .networkError) }
@@ -124,14 +179,54 @@ public final class JRequest<T: Codable> {
 			guard !(T.self == String.self)
 				else { return callback(String(data: data, encoding: .utf8) as? T, nil) }
 			
-			guard let response = try? decoder.decode(T.self, from: data)
+			guard let response = try? JSONDecoder().decode(T.self, from: data)
 				else { return callback(nil, .invalidResponse) }
 			
 			
 			// the request was successful
 			callback(response, nil)
 		}
-		task.resume()
+	}
+	
+	
+	
+	/// Starts a request with the parameters and checks for the error class.
+	private func start<E: Decodable>(
+		_ endpoint: String,
+		method: JRequestMethod,
+		errorClass: E,
+		body: [String: Any]?,
+		queries: [String: String]?,
+		headers: [String: String]?,
+		auth: JRequestAuth?,
+		callback: @escaping ((T?, E?, JRequestError?) -> ())
+	) {
+		
+		let decoder = JSONDecoder()
+		request(endpoint, method: method, body: body, queries: queries, headers: headers, auth: auth) { data, error in
+			
+			guard error == nil
+				else { return callback(nil, nil, .networkError) }
+			
+			guard let data = data
+				else { return callback(nil, nil, .invalidResponse) }
+			
+			if E.self == String.self
+			{ return callback(nil, String(data: data, encoding: .utf8) as? E, nil) }
+			
+			if let errorResponse = try? decoder.decode(E.self, from: data)
+			{ return callback(nil, errorResponse, nil) }
+			
+			guard !(T.self == String.self)
+				else { return callback(String(data: data, encoding: .utf8) as? T, nil, nil) }
+			
+			guard let response = try? decoder.decode(T.self, from: data)
+				else { return callback(nil, nil, .invalidResponse) }
+			
+			
+			// the request was successful
+			callback(response, nil, nil)
+		}
 	}
 	
 }
