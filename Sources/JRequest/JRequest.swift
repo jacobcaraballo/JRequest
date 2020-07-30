@@ -35,7 +35,58 @@ public final class JRequest<T: Decodable> {
 		case get, post
 	}
 	
-	public init() { }
+	public init() {
+		self.endpoint = ""
+	}
+	
+	
+	private let endpoint: String
+	private var queries: [String: String]?
+	private var headers: [String: String]?
+	private var awsAuth: JRequestAuth?
+	
+	
+	
+	public init(endpoint: String) {
+		self.endpoint = endpoint
+	}
+	
+	public func set(query key: String, value: String) -> JRequest {
+		if queries == nil { queries = [String: String]() }
+		queries?[key] = value
+		return self
+	}
+	
+	public func set(header key: String, value: String) -> JRequest {
+		if headers == nil { headers = [String: String]() }
+		headers?[key] = value
+		return self
+	}
+	
+	public func set(awsAuth: JRequestAuth) -> JRequest {
+		self.awsAuth = awsAuth
+		return self
+	}
+	
+	public func get(_ callback: @escaping (T?, JRequestError?) -> ()) {
+		start(endpoint,
+			  method: .get,
+			  body: nil,
+			  queries: queries,
+			  headers: headers,
+			  auth: awsAuth,
+			  callback: callback)
+	}
+	
+	public func post(body: [String: String]?, callback: @escaping (T?, JRequestError?) -> ()) {
+		start(endpoint,
+			  method: .get,
+			  body: body,
+			  queries: queries,
+			  headers: headers,
+			  auth: awsAuth,
+			  callback: callback)
+	}
 	
 	
 	
